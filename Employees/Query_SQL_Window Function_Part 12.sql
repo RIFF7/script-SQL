@@ -772,3 +772,72 @@ WHERE emp_no = 10560
 WINDOW w AS (PARTITION BY emp_no ORDER BY salary DESC);
 
 /*------------------------------------------------------------------------------------*/
+
+-- Pembahasan selanjutnya Working with MySQL Ranking Window Functions and Joins Together
+-- Example 1
+/*
+Keterangan:
+- Menampilkan informasi gaji (salary) dan peringkat gaji (department_salary_ranking) 
+untuk setiap departemen (dept_no) berdasarkan gaji pegawai yang menjadi manajer departemen.
+
+- Menggunakan fungsi analitik RANK() untuk memberikan peringkat gaji berdasarkan gaji 
+pegawai dalam setiap departemen.
+*/
+SELECT
+	d.dept_no,
+    d.dept_name,
+    dm.emp_no,
+    RANK() OVER w AS department_salary_ranking,
+    s.salary,
+    s.from_date AS salary_from_date,
+    s.to_date AS salary_to_date,
+    dm.from_date AS dept_manager_from_date,
+    dm.to_date AS dept_manager_to_date
+FROM
+	dept_manager dm
+		JOIN
+	salaries s ON dm.emp_no = s.emp_no
+		JOIN
+	departments d ON dm.dept_no = d.dept_no
+WINDOW w AS (PARTITION BY dm.dept_no ORDER BY s.salary DESC);
+
+-- Example 2
+/*
+Keterangan:
+- Sama seperti Example 1, tetapi dengan tambahan kondisi JOIN yang memastikan 
+bahwa tanggal gaji (from_date dan to_date) berada dalam rentang tanggal dari 
+tanggal menjadi manajer departemen (dept_manager_from_date dan dept_manager_to_date).
+
+- Menggunakan fungsi analitik RANK() untuk memberikan peringkat gaji berdasarkan 
+gaji pegawai dalam setiap departemen.
+*/
+SELECT
+	d.dept_no,
+    d.dept_name,
+    dm.emp_no,
+    RANK() OVER w AS department_salary_ranking,
+    s.salary,
+    s.from_date AS salary_from_date,
+    s.to_date AS salary_to_date,
+    dm.from_date AS dept_manager_from_date,
+    dm.to_date AS dept_manager_to_date
+FROM
+	dept_manager dm
+		JOIN
+	salaries s ON dm.emp_no = s.emp_no
+		AND s.from_date BETWEEN dm.from_date AND dm.to_date
+        AND s.to_date BETWEEN dm.from_date AND dm.to_date
+		JOIN
+	departments d ON dm.dept_no = d.dept_no
+WINDOW w AS (PARTITION BY dm.dept_no ORDER BY s.salary DESC);
+
+/*
+Kesimpulan:
+- Example 1 dan Example 2 memberikan informasi tentang gaji dan peringkat gaji 
+untuk setiap departemen berdasarkan gaji pegawai yang menjadi manajer departemen.
+
+- Example 2 memiliki tambahan kondisi JOIN yang memastikan bahwa hanya gaji pegawai 
+yang berada dalam rentang tanggal menjadi manajer departemen yang dimasukkan dalam hasil query.
+*/
+
+/*------------------------------------------------------------------------------------*/
