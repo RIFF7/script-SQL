@@ -407,7 +407,19 @@ WINDOW w AS (PARTITION BY first_name ORDER BY emp_no);
 /*------------------------------------------------------------------------------------*/
 
 -- Masuk Pada Materi The PARTITION BY Clause VS the GROUP BY Clause
+/*
+Pada contoh selanjutnya, saya akan memperlihatkan penggunaan dari
+PARTITION BY dan GROUP BY, perlu diketaui bahwa hasil output akan tetap
+sama namun penggunaan dari cara penulisan query-nya saja yang berbeda.
+*/
+
 -- Example 1
+/*
+- Menggunakan ROW_NUMBER() untuk memberikan nomor baris dalam 
+setiap partisi berdasarkan gaji (salary) yang diurutkan secara menurun (descending).
+
+- Menciptakan nomor baris untuk setiap kategori (partisi) yang diidentifikasi oleh kolom emp_no.
+*/
 SELECT
 	emp_no,
     salary,
@@ -416,6 +428,13 @@ FROM
 	salaries;
 
 -- Example 2
+/*
+- Menghitung gaji tertinggi (max_salary) dalam setiap partisi 
+yang diidentifikasi oleh kolom emp_no.
+
+- Menggunakan fungsi analitik ROW_NUMBER() bersama dengan fungsi 
+agregasi MAX dalam subquery dengan WINDOW clause.
+*/
 SELECT
 	a.emp_no,
     MAX(salary) AS max_salary
@@ -431,6 +450,9 @@ FROM (
 GROUP BY 1;
 
 -- Example 3
+/*
+- Sama seperti Example 2, tetapi kali ini ROW_NUMBER() diurutkan secara menaik (ascending).
+*/
 SELECT
 	a.emp_no,
     MAX(salary) AS max_salary
@@ -445,6 +467,12 @@ FROM (
 GROUP BY 1;
 
 -- Exampel 4
+/*
+- Menghitung gaji tertinggi (max_salary) dalam setiap grup emp_no 
+tanpa menggunakan ROW_NUMBER().
+
+- Subquery ini sepertinya tidak memerlukan penggunaan ROW_NUMBER().
+*/
 SELECT
 	a.emp_no,
     MAX(salary) AS max_salary
@@ -457,7 +485,13 @@ FROM (
 GROUP BY 1;
 
 -- Example 5
--- Exampel 4
+/*
+- Menunjukkan gaji tertinggi (max_salary) dalam setiap partisi yang 
+diidentifikasi oleh kolom emp_no, tetapi menggunakan kondisi WHERE 
+untuk memilih berdasarkan ROW_NUMBER().
+
+- Dapat memilih gaji tertinggi dengan memodifikasi nilai ROW_NUMBER().
+*/
 SELECT
 	a.emp_no,
     a.salary AS max_salary
@@ -484,12 +518,25 @@ FROM (
 ) AS a
 WHERE a.row_num = 2;
 
--- Example 5
+-- Example 6
+/*
+- Sama seperti Example 1, tetapi merupakan duplikat dari query sebelumnya.
+*/
 SELECT
 	emp_no,
     salary,
     ROW_NUMBER() OVER(PARTITION BY emp_no ORDER BY salary DESC) AS row_num
 FROM salaries;
+
+/*
+Kesimpulan Umum:
+- Penggunaan ROW_NUMBER() bergantung pada kebutuhan spesifik query, 
+dan dapat digunakan untuk memberikan nomor baris, mengurutkan data dalam partisi, 
+atau menghasilkan hasil analisis data yang diinginkan.
+
+- WINDOW clause digunakan untuk mendefinisikan partisi dan urutan 
+dalam penggunaan fungsi analitik di MySQL.
+*/
 
 -- Exercise Number 1
 /*
