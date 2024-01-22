@@ -645,5 +645,73 @@ WHERE a.row_num = 2;
 /*------------------------------------------------------------------------------------*/
 
 -- Masuk Pada Materi The MySQL RANK() and DENSE_RANK() Window Functions
+-- ROW_NUMBER()
+/*
+Perbedaan Utama:
+- ROW_NUMBER() memberikan nomor baris unik secara terurut untuk setiap baris data.
+- Jika ada nilai gaji yang sama, ROW_NUMBER() memberikan nomor baris yang berbeda.
+
+Contoh:
+Jika ada dua baris data dengan gaji yang sama, keduanya akan mendapatkan nomor baris yang berbeda.
+*/
+SELECT
+	emp_no,
+    salary,
+    ROW_NUMBER() OVER w AS row_num
+FROM salaries
+WHERE emp_no = 11839
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary DESC);
+
+-- RANK()
+/*
+Perbedaan Utama:
+- RANK() memberikan nomor peringkat untuk setiap baris data.
+- Jika ada nilai gaji yang sama, keduanya akan mendapatkan peringkat yang sama, 
+dan peringkat berikutnya akan dilewati.
+
+Contoh:
+Jika ada dua baris data dengan gaji yang sama, keduanya akan mendapatkan 
+peringkat yang sama, dan peringkat berikutnya akan dilewati.
+*/
+SELECT
+	emp_no,
+    salary,
+    RANK() OVER w AS rank_num
+FROM salaries
+WHERE emp_no = 11839
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary DESC);
+
+-- DENSE_RANK()
+/*
+Perbedaan Utama:
+- DENSE_RANK() memberikan nomor peringkat untuk setiap baris data.
+- Jika ada nilai gaji yang sama, keduanya akan mendapatkan 
+peringkat yang sama, dan peringkat berikutnya tetap dilanjutkan secara berturut-turut.
+
+Contoh:
+Jika ada dua baris data dengan gaji yang sama, keduanya akan mendapatkan 
+peringkat yang sama, dan peringkat berikutnya tetap dilanjutkan secara berturut-turut.
+*/
+SELECT
+	emp_no,
+    salary,
+    DENSE_RANK() OVER w AS rank_num
+FROM salaries
+WHERE emp_no = 11839
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary DESC);
+
+/*
+Kesimpulan:
+
+Penggunaan ROW_NUMBER(), RANK(), atau DENSE_RANK() tergantung pada kebutuhan 
+analisis data yang diinginkan. Jika Anda ingin nomor baris unik, gunakan ROW_NUMBER(). 
+Jika Anda ingin peringkat dengan nilai yang sama mendapatkan peringkat yang sama, 
+gunakan RANK(). Jika Anda ingin peringkat dengan nilai yang sama mendapatkan 
+peringkat yang sama, dan peringkat berikutnya tetap dilanjutkan secara berturut-turut, 
+gunakan DENSE_RANK().
+
+*/
+
+
 
 /*------------------------------------------------------------------------------------*/
