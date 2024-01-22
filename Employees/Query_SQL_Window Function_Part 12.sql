@@ -849,6 +849,16 @@ Also, allow gaps in the ranks obtained for their subsequent rows.
 
 Use a join on the “employees” and “salaries” tables to obtain the desired result.
 */
+SELECT
+	e.emp_no,
+    RANK() OVER w AS employee_salary_ranking,
+    s.salary
+FROM 
+	employees e
+		JOIN 
+	salaries s ON e.emp_no = s.emp_no
+WHERE e.emp_no BETWEEN 10500 AND 10600
+WINDOW w AS (PARTITION BY e.emp_no ORDER BY s.salary DESC);
 
 -- Exercise Number 2
 /*
@@ -866,5 +876,56 @@ Do not allow gaps in the ranks obtained for their subsequent rows.
 
 Use a join on the “employees” and “salaries” tables to obtain the desired result.
 */
+/*
+Query dibawah ini digunakan untuk menghasilkan informasi tentang 
+pegawai yang memenuhi kriteria tertentu berdasarkan gaji dan masa kerja. 
+
+Informasi yang Dihasilkan:
+- emp_no: Nomor pegawai.
+- employee_salary_ranking: Peringkat pegawai berdasarkan gaji dalam setiap partisi emp_no.
+- salary: Gaji pegawai.
+- hire_date: Tanggal perekrutan pegawai.
+- from_date: Tanggal efektif gaji.
+- years_from_start: Masa kerja pegawai dalam tahun, dihitung dari tanggal 
+perekrutan hingga tanggal efektif gaji.
+
+FROM Clause:
+- Menggunakan JOIN antara tabel employees dan salaries berdasarkan emp_no.
+
+- Menggunakan kondisi AND YEAR(s.from_date) - YEAR(e.hire_date) >= 5 
+untuk memastikan hanya data yang memiliki masa kerja minimal 5 tahun yang dimasukkan.
+
+WHERE Clause:
+- Menggunakan kondisi WHERE e.emp_no BETWEEN 10500 AND 10600 untuk membatasi 
+hasil hanya untuk pegawai dengan nomor antara 10500 dan 10600.
+
+WINDOW Clause:
+- Menggunakan WINDOW w AS (PARTITION BY e.emp_no ORDER BY s.salary DESC) 
+untuk menentukan partisi dan urutan untuk fungsi analitik DENSE_RANK(). 
+Ini memberikan peringkat gaji dalam setiap partisi pegawai berdasarkan gaji secara menurun.
+
+Kesimpulan:
+Query ini digunakan untuk menemukan pegawai dengan masa kerja minimal 5 tahun 
+dan memberikan informasi terkait peringkat gaji, gaji, dan masa kerja pegawai. 
+Peringkat gaji dihitung dalam setiap partisi pegawai.
+*/
+SELECT
+	e.emp_no,
+    DENSE_RANK() OVER w AS employee_salary_ranking,
+    s.salary,
+    e.hire_date,
+    s.from_date,
+    (YEAR(s.from_date) - YEAR(e.hire_date)) AS years_from_start
+FROM 
+	employees e
+		JOIN 
+	salaries s ON e.emp_no = s.emp_no
+		AND YEAR(s.from_date) - YEAR(e.hire_date) >= 5
+WHERE e.emp_no BETWEEN 10500 AND 10600
+WINDOW w AS (PARTITION BY e.emp_no ORDER BY s.salary DESC);
+
+/*------------------------------------------------------------------------------------*/
+
+
 
 /*------------------------------------------------------------------------------------*/
