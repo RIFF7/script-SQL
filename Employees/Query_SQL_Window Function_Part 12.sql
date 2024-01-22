@@ -406,7 +406,7 @@ WINDOW w AS (PARTITION BY first_name ORDER BY emp_no);
 
 /*------------------------------------------------------------------------------------*/
 
--- The PARTITION BY Clause VS the GROUP BY Clause
+-- Masuk Pada Materi The PARTITION BY Clause VS the GROUP BY Clause
 -- Example 1
 SELECT
 	emp_no,
@@ -460,7 +460,7 @@ GROUP BY 1;
 -- Exampel 4
 SELECT
 	a.emp_no,
-    MAX(salary) AS max_salary
+    a.salary AS max_salary
 FROM (
 	SELECT
 		emp_no,
@@ -469,12 +469,11 @@ FROM (
 	FROM salaries
     WINDOW w AS (PARTITION BY emp_no ORDER BY salary DESC)
 ) AS a
-WHERE a.row_num = 1
-GROUP BY 1;
+WHERE a.row_num = 1;
 
 SELECT
 	a.emp_no,
-    MAX(salary) AS max_salary
+    a.salary AS max_salary
 FROM (
 	SELECT
 		emp_no,
@@ -483,8 +482,7 @@ FROM (
 	FROM salaries
     WINDOW w AS (PARTITION BY emp_no ORDER BY salary DESC)
 ) AS a
-WHERE a.row_num = 2
-GROUP BY 1;
+WHERE a.row_num = 2;
 
 -- Example 5
 SELECT
@@ -495,36 +493,110 @@ FROM salaries;
 
 -- Exercise Number 1
 /*
+Find out the lowest salary value each employee has ever signed a contract for. 
+To obtain the desired output, use a subquery containing a window function, 
+as well as a window specification introduced with the help of the WINDOW keyword.
 
+Also, to obtain the desired result set, refer only to data from the “salaries” table.
 */
-
+SELECT
+	a.emp_no,
+    MIN(salary) AS min_salary
+FROM (
+	SELECT
+		emp_no,
+        salary,
+        ROW_NUMBER() OVER w AS row_num
+	FROM salaries
+    WINDOW w AS (PARTITION BY emp_no ORDER BY salary)
+) AS a
+GROUP BY 1;
 
 -- Exercise Number 2
 /*
+Again, find out the lowest salary value each employee has ever signed a contract for. 
+Once again, to obtain the desired output, use a subquery containing a window function. 
+This time, however, introduce the window specification in the field list of the given subquery.
 
+To obtain the desired result set, refer only to data from the “salaries” table.
 */
-
+SELECT
+	a.emp_no,
+    MIN(salary) AS min_salary
+FROM (
+	SELECT
+		emp_no,
+        salary,
+        ROW_NUMBER() OVER(PARTITION BY emp_no ORDER BY salary) AS row_num
+	FROM salaries
+) AS a
+GROUP BY 1;
 
 -- Exercise Number 3
 /*
+Once again, find out the lowest salary value each employee has ever signed a contract for. 
+This time, to obtain the desired output, avoid using a window function. 
+Just use an aggregate function and a subquery.
 
+To obtain the desired result set, refer only to data from the “salaries” table.
 */
-
+SELECT
+	a.emp_no,
+    MIN(salary) AS min_salary
+FROM (
+	SELECT
+		emp_no,
+        salary
+	FROM salaries
+) AS a
+GROUP BY 1;
 
 -- Exercise Number 4
 /*
+Once more, find out the lowest salary value each employee has ever signed a contract for. 
+To obtain the desired output, use a subquery containing a window function, 
+as well as a window specification introduced with the help of the WINDOW keyword. 
+Moreover, obtain the output without using a GROUP BY clause in the outer query.
 
+To obtain the desired result set, refer only to data from the “salaries” table.
 */
-
+SELECT
+	a.emp_no,
+    a.salary AS min_salary
+FROM (
+	SELECT
+		emp_no,
+        salary,
+        ROW_NUMBER() OVER w AS row_num
+	FROM salaries
+    WINDOW w AS (PARTITION BY emp_no ORDER BY salary)
+) AS a 
+WHERE a.row_num=1;
 
 -- Exercise Number 5
 /*
+Find out the second-lowest salary value each employee has ever signed a contract for. 
+To obtain the desired output, use a subquery containing a window function, 
+as well as a window specification introduced with the help of the WINDOW keyword. 
+Moreover, obtain the desired result set without using a GROUP BY clause in the outer query.
 
+To obtain the desired result set, refer only to data from the “salaries” table.
 */
-
+SELECT
+	a.emp_no,
+    a.salary AS min_salary
+FROM (
+	SELECT
+		emp_no,
+        salary,
+        ROW_NUMBER() OVER w AS row_num
+	FROM salaries
+    WINDOW w AS (PARTITION BY emp_no ORDER BY salary)
+) AS a
+WHERE a.row_num = 2;
 
 /*------------------------------------------------------------------------------------*/
 
-
+-- Masuk Pada Materi The MySQL RANK() and DENSE_RANK() Window Functions
 
 /*------------------------------------------------------------------------------------*/
