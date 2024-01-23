@@ -1362,6 +1362,96 @@ WHERE
 	s.to_date > SYSDATE()
 		AND s.from_date = s1.from_date;
 
+-- Exercise Number 1
+/*
+Create a query that upon execution returns a result set containing 
+the employee numbers, contract salary values, start, 
+and end dates of the first ever contracts that each employee signed for the company.
 
+To obtain the desired output, refer to the data stored in the "salaries" table.
+*/
+-- Cara 1
+/*
+Dalam query dibawah ini, kita menggunakan tabel "salaries". 
+Query ini menghasilkan set hasil yang berisi nomor karyawan ("emp_no"), 
+nilai gaji kontrak ("salary"), tanggal mulai ("from_date"), 
+dan tanggal berakhirnya kontrak ("to_date") dari kontrak pertama 
+yang ditandatangani oleh setiap karyawan.
+
+Penjelasan query:
+
+Subquery dalam klausa WHERE ((emp_no, from_date) IN (...)):
+- Subquery ini mengambil nilai terkecil dari "from_date" untuk setiap 
+"emp_no" menggunakan fungsi agregat MIN().
+
+- Klausa GROUP BY digunakan untuk mengelompokkan hasil berdasarkan "emp_no".
+
+Klausa WHERE utama:
+- Menyaring baris-baris di mana pasangan nilai ("emp_no", 
+"from_date") ada dalam subquery. Ini menghasilkan baris-baris 
+yang memiliki tanggal mulai kontrak pertama untuk setiap karyawan.
+
+Dengan menggunakan pendekatan ini, Anda dapat mendapatkan hasil yang mencakup 
+nomor karyawan, nilai gaji kontrak, tanggal mulai, dan tanggal berakhirnya 
+kontrak pertama yang ditandatangani oleh setiap karyawan.
+
+*/
+SELECT
+    emp_no,
+    salary,
+    from_date,
+    to_date
+FROM
+    salaries
+WHERE
+    (emp_no, from_date) IN
+    (
+        SELECT
+            emp_no,
+            MIN(from_date) AS earliest_from_date
+        FROM
+            salaries
+        GROUP BY
+            emp_no
+    );
+    
+-- Cara 2
+/*
+Cara 1 dan Cara 2 menghasilkan output yang sama, dan keduanya memiliki 
+tujuan yang serupa, yaitu mendapatkan baris-baris yang memiliki nilai 
+minimum dari "from_date" untuk setiap "emp_no" dalam tabel "salaries".
+
+Namun, perlu diingat bahwa pendekatan dan sintaksis keduanya sedikit berbeda:
+- Cara 1 menggunakan klausa IN dengan subquery yang mengembalikan pasangan 
+nilai ("emp_no", "from_date") yang bersamaan dengan nilai minimum "from_date" untuk setiap "emp_no".
+
+- Cara 2 menggunakan JOIN dengan subquery untuk mendapatkan nilai minimum 
+"from_date" untuk setiap "emp_no" dan kemudian membandingkannya dengan nilai 
+"from_date" di tabel utama menggunakan klausa WHERE.
+
+Meskipun keduanya dapat memberikan hasil yang sama, pendekatan dengan JOIN 
+biasanya dapat lebih efisien dalam beberapa kasus, terutama ketika melakukan 
+JOIN antara tabel besar. Namun, keefisienan dapat bervariasi tergantung pada 
+implementasi spesifik dari sistem manajemen basis data yang digunakan.
+
+*/
+SELECT
+	s1.emp_no,
+    s.salary,
+    s.from_date,
+    s.to_date
+FROM
+	salaries s
+		JOIN
+	(
+		SELECT
+			emp_no,
+            MIN(from_date) AS from_date
+		FROM
+			salaries
+		GROUP BY emp_no
+    ) AS s1 ON s.emp_no = s1.emp_no
+WHERE
+	s.from_date = s1.from_date;
 
 /*------------------------------------------------------------------------------------*/
