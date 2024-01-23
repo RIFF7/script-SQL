@@ -1102,7 +1102,7 @@ SELECT
 FROM
 	salaries
 WHERE (emp_no BETWEEN 10500 AND 10600) AND salary > 80000
-WINDOW w AS (ORDER BY salary);
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary);
 
 -- Exercise Number 2
 /*
@@ -1133,12 +1133,79 @@ SELECT
 	emp_no,
     salary,
     LAG(salary) OVER w AS previous_salary,
+    LAG(salary, 2) OVER w AS 1_before_previous_salary,
     LEAD(salary) OVER w AS next_salary,
-    salary - LAG(salary) OVER w AS diff_salary_current_previous,
-    LEAD(salary) OVER w - salary AS diff_salary_next_current
+    LEAD(salary, 2) OVER w AS 1_after_next_salary
 FROM
 	salaries
-WINDOW w AS (ORDER BY salary)
+WINDOW w AS (PARTITION BY emp_no ORDER BY salary)
 LIMIT 1000;
+
+/*
+Informasi yang Dihasilkan:
+- emp_no: Nomor pegawai.
+- salary: Gaji pegawai.
+- previous_salary: Gaji pegawai sebelumnya berdasarkan urutan gaji yang diurutkan.
+- 1_before_previous_salary: Gaji pegawai dua baris sebelumnya berdasarkan urutan gaji yang diurutkan.
+- next_salary: Gaji pegawai selanjutnya berdasarkan urutan gaji yang diurutkan.
+- 1_after_next_salary: Gaji pegawai dua baris sesudahnya berdasarkan urutan gaji yang diurutkan.
+
+WINDOW Clause:
+Menggunakan WINDOW w AS (PARTITION BY emp_no ORDER BY salary) 
+untuk menentukan partisi dan urutan untuk fungsi analitik LAG() dan LEAD(). 
+Ini memberikan peringkat gaji dalam setiap partisi pegawai berdasarkan gaji secara menurun.
+
+Fungsi Analitik:
+- LAG(salary) OVER w: Mengambil nilai gaji sebelumnya.
+- LAG(salary, 2) OVER w: Mengambil nilai gaji dua baris sebelumnya.
+- LEAD(salary) OVER w: Mengambil nilai gaji selanjutnya.
+- LEAD(salary, 2) OVER w: Mengambil nilai gaji dua baris sesudahnya.
+
+LIMIT Clause:
+Menggunakan LIMIT 1000 untuk membatasi hasil hanya untuk 1000 baris pertama.
+
+Kesimpulan:
+Query ini memberikan informasi tentang gaji saat ini, gaji sebelumnya, 
+gaji dua baris sebelumnya, gaji selanjutnya, dan gaji dua baris sesudahnya 
+untuk setiap pegawai. Informasi ini berguna dalam analisis tren atau perubahan dalam data gaji pegawai.
+
+Penjelasan Mendalam LAG(expression, offset) & LEAD(expression, offset):
+
+1. LAG(salary, 2) OVER w AS 1_before_previous_salary
+Fungsi LAG(salary, 2) mengambil nilai gaji dua baris sebelumnya dalam urutan yang diurutkan.
+
+Contoh Ilustratif:
+Misalnya, jika kita memiliki urutan gaji berikut untuk seorang pegawai:
+5000, 6000, 7000, 8000, 9000
+
+Hasil dari 1_before_previous_salary akan menjadi:
+NULL, NULL, 5000, 6000, 7000
+
+Kegunaan:
+Berguna ketika kita ingin melihat nilai pada posisi sebelumnya 
+dalam urutan tertentu, dalam hal ini, dua posisi sebelumnya.
+
+2. LEAD(salary, 2) OVER w AS 1_after_next_salary
+Fungsi LEAD(salary, 2) mengambil nilai gaji dua baris sesudahnya dalam urutan yang diurutkan.
+
+Contoh Ilustratif:
+Menggunakan urutan gaji yang sama seperti sebelumnya:
+5000, 6000, 7000, 8000, 9000
+
+Hasil dari 1_after_next_salary akan menjadi:
+7000, 8000, 9000, NULL, NULL
+
+Kegunaan:
+Berguna ketika kita ingin melihat nilai pada posisi sesudahnya 
+dalam urutan tertentu, dalam hal ini, dua posisi sesudahnya
+
+Kesimpulan:
+Dengan menggunakan LAG(salary, 2) dan LEAD(salary, 2), kita dapat 
+mengakses nilai gaji dua baris sebelumnya dan dua baris sesudahnya 
+dalam urutan yang diurutkan, memberikan fleksibilitas tambahan dalam 
+analisis data urutan atau temporal. Perlu diingat bahwa penggunaan 
+fungsi ini tergantung pada kebutuhan analisis data tertentu.
+
+*/
 
 /*------------------------------------------------------------------------------------*/
