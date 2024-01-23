@@ -42,7 +42,7 @@ menggunakan klausa ORDER BY dalam OVER(), urutan nomor baris mungkin
 tidak dapat diandalkan karena tidak ada urutan yang spesifik yang diberikan 
 oleh database. 
 
-Sehingga, jika Anda ingin urutan yang pasti, Anda dapat menambahkan 
+Sehingga, jika kita ingin urutan yang pasti, kita dapat menambahkan 
 ORDER BY dalam OVER() sesuai dengan kolom yang diinginkan.
 */
 SELECT
@@ -704,9 +704,9 @@ WINDOW w AS (PARTITION BY emp_no ORDER BY salary DESC);
 Kesimpulan:
 
 Penggunaan ROW_NUMBER(), RANK(), atau DENSE_RANK() tergantung pada kebutuhan 
-analisis data yang diinginkan. Jika Anda ingin nomor baris unik, gunakan ROW_NUMBER(). 
-Jika Anda ingin peringkat dengan nilai yang sama mendapatkan peringkat yang sama, 
-gunakan RANK(). Jika Anda ingin peringkat dengan nilai yang sama mendapatkan 
+analisis data yang diinginkan. Jika kita ingin nomor baris unik, gunakan ROW_NUMBER(). 
+Jika kita ingin peringkat dengan nilai yang sama mendapatkan peringkat yang sama, 
+gunakan RANK(). Jika kita ingin peringkat dengan nilai yang sama mendapatkan 
 peringkat yang sama, dan peringkat berikutnya tetap dilanjutkan secara berturut-turut, 
 gunakan DENSE_RANK().
 
@@ -1223,6 +1223,32 @@ all currently employed workers registered in the dept_emp table:
 */
 SELECT SYSDATE();
 
+/*
+Query dibawah merupakan pernyataan SQL yang digunakan untuk mengambil 
+data dari tabel "salaries". Mari kita jelaskan setiap bagian dari query tersebut:
+
+1. `SELECT emp_no, salary, from_date, to_date`: 
+Ini adalah klausa SELECT yang menentukan kolom-kolom mana 
+yang akan diambil dari tabel. Dalam hal ini, query akan mengambil data 
+dari kolom-kolom "emp_no", "salary", "from_date", dan "to_date" dari tabel "salaries".
+
+2. `FROM salaries`: 
+Ini adalah klausa FROM yang menunjukkan tabel mana yang akan diambil data-nya. 
+Dalam hal ini, data diambil dari tabel bernama "salaries".
+
+3. `WHERE to_date > SYSDATE()`: 
+Ini adalah klausa WHERE yang digunakan untuk memberikan kondisi pemfilteran. 
+Data yang akan diambil hanya akan memenuhi kondisi tertentu. 
+Pada contoh ini, hanya data yang memiliki nilai kolom "to_date" 
+lebih besar dari tanggal sistem (SYSDATE()) yang akan diambil. 
+Dengan kata lain, hanya data yang masih berlaku (to_date di masa depan) 
+yang akan dimasukkan ke dalam hasil query.
+
+Penting untuk dicatat bahwa SYSDATE() merupakan fungsi yang mengembalikan 
+tanggal dan waktu sistem saat ini. Tergantung pada sistem manajemen basis data yang digunakan, 
+sintaksis mungkin bisa sedikit berbeda. Pada contoh ini, diasumsikan bahwa SYSDATE() 
+digunakan untuk mendapatkan tanggal sistem.
+*/
 SELECT
 	emp_no,
     salary,
@@ -1232,5 +1258,110 @@ FROM
 	salaries
 WHERE
 	to_date > SYSDATE();
+
+-- Query di bawah ini akan menyebabkan error 1055 pada MySQL
+/*
+Error 1055 pada MySQL biasanya terjadi ketika kolom-kolom yang ada 
+di dalam klausa SELECT tidak termasuk dalam klausa GROUP BY, 
+kecuali jika mereka berada dalam fungsi agregat seperti 
+COUNT(), SUM(), AVG(), MAX(), atau MIN().
+
+Pada contoh query di atas, kita menggunakan fungsi agregat MAX() 
+pada kolom "from_date", tetapi kolom tersebut tidak disertakan dalam klausa GROUP BY. 
+Ini melanggar aturan pada MySQL.
+
+Kita perlu memasukkan kolom "from_date" ke dalam klausa GROUP BY atau mengubah 
+query agar tidak menggunakan fungsi agregat pada kolom yang tidak termasuk dalam klausa GROUP BY.
+
+Berikut adalah dua alternatif yang dapat Anda pertimbangkan:
+# Exampe 1
+SELECT
+    emp_no,
+    salary,
+    MAX(from_date),
+    to_date
+FROM
+    salaries
+GROUP BY emp_no, salary, to_date;
+
+# Example 2
+SELECT
+    emp_no,
+    salary,
+    (
+		SELECT 
+			MAX(from_date) 
+		FROM salaries s2 
+        WHERE s2.emp_no = s1.emp_no
+	) AS max_from_date,
+    to_date
+FROM
+    salaries s1
+GROUP BY emp_no, salary, to_date;
+
+- Pilihan pertama lebih sederhana jika Anda hanya membutuhkan nilai maksimum 
+dari "from_date" untuk setiap kelompok dalam GROUP BY. 
+
+- Pilihan kedua dapat digunakan jika Anda memerlukan nilai maksimum 
+"from_date" untuk setiap baris individu, tetapi memerlukan manipulasi 
+lebih lanjut karena subquery digunakan.
+*/
+SELECT
+	emp_no,
+    salary,
+    MAX(from_date),
+    to_date
+FROM
+	salaries
+GROUP BY 1;
+
+-- Langkah Lainnya Untuk Menyelesaikan Case Error Diatas
+/*
+Query dibawah adalah pernyataan SQL yang menggabungkan tabel "salaries" 
+dengan dirinya sendiri menggunakan klausa JOIN dan memanfaatkan subquery 
+untuk mendapatkan nilai maksimum dari "from_date" untuk setiap "emp_no". 
+
+Subquery (s1):
+- Subquery ini digunakan untuk menghasilkan nilai maksimum dari kolom "from_date" 
+untuk setiap "emp_no" dalam tabel "salaries". Subquery ini diberi alias "s1".
+
+JOIN antara tabel "salaries" dan subquery (s1):
+- Ini adalah klausa JOIN yang menggabungkan tabel "salaries" (diberi alias "s") 
+dengan subquery "s1" berdasarkan kolom "emp_no". Pemilihan kolom mencakup "emp_no" 
+dari subquery "s1", "salary", "from_date", dan "to_date" dari tabel "salaries".
+
+Klausa WHERE:
+Klausa WHERE ini menyaring hasil gabungan berdasarkan kondisi-kondisi berikut:
+- Hanya baris dengan "to_date" yang lebih besar dari 
+tanggal sistem (SYSDATE()) yang akan disertakan.
+
+- Hanya baris di mana "from_date" dari tabel "salaries" sama dengan 
+"from_date" yang dihasilkan oleh subquery "s1" yang akan disertakan.
+
+Dengan menggunakan subquery dan JOIN, query ini mendapatkan baris-baris 
+yang memiliki nilai maksimum "from_date" untuk setiap "emp_no" dan 
+memenuhi kondisi tertentu pada kolom "to_date".
+*/
+SELECT
+	s1.emp_no,
+	s.salary,
+    s.from_date,
+    to_date
+FROM
+	salaries s
+		JOIN
+	(
+		SELECT
+			emp_no,
+            MAX(from_date) AS from_date
+		FROM
+			salaries
+		GROUP BY emp_no
+    ) AS s1 ON s.emp_no = s1.emp_no
+WHERE
+	s.to_date > SYSDATE()
+		AND s.from_date = s1.from_date;
+
+
 
 /*------------------------------------------------------------------------------------*/
