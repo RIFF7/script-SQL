@@ -926,6 +926,136 @@ WINDOW w AS (PARTITION BY e.emp_no ORDER BY s.salary DESC);
 
 /*------------------------------------------------------------------------------------*/
 
+-- Masuk pada pembahasan The LAG() and LEAD() Value Window Functions
+/*
+Query dibawah menggunakan fungsi analitik LAG() dan LEAD() 
+untuk mengambil nilai gaji sebelumnya dan nilai gaji selanjutnya 
+dari data pegawai dengan nomor 10001. 
 
+Informasi yang Dihasilkan:
+- emp_no: Nomor pegawai.
+- salary: Gaji pegawai.
+- previous_salary: Gaji pegawai sebelumnya berdasarkan urutan gaji yang diurutkan.
+- next_salary: Gaji pegawai selanjutnya berdasarkan urutan gaji yang diurutkan.
+- diff_salary_current_previous: Selisih antara gaji saat ini dan gaji sebelumnya.
+- diff_salary_next_current: Selisih antara gaji selanjutnya dan gaji saat ini.
+
+WINDOW Clause:
+- Menggunakan WINDOW w AS (ORDER BY salary) untuk 
+menentukan urutan pengurutan berdasarkan kolom salary.
+
+Fungsi Analitik:
+- LAG(salary) OVER w: 
+Mengambil nilai gaji sebelumnya dalam urutan gaji yang diurutkan.
+
+- LEAD(salary) OVER w: 
+Mengambil nilai gaji selanjutnya dalam urutan gaji yang diurutkan.
+
+WHERE Clause:
+- Hanya memilih data untuk pegawai dengan nomor 10001.
+
+Perhitungan Selisih Gaji:
+- salary - LAG(salary) OVER w: 
+Menghitung selisih antara gaji saat ini dan gaji sebelumnya.
+
+- LEAD(salary) OVER w - salary: 
+Menghitung selisih antara gaji selanjutnya dan gaji saat ini.
+
+Kesimpulan:
+Query ini memberikan informasi tentang gaji saat ini, 
+gaji sebelumnya, dan gaji selanjutnya untuk pegawai dengan nomor 10001, 
+serta menghitung selisih antara gaji saat ini dengan gaji sebelumnya dan gaji selanjutnya.
+
+*/
+SELECT
+	emp_no,
+    salary,
+    LAG(salary) OVER w AS previous_salary,
+    LEAD(salary) OVER w AS next_salary,
+    salary - LAG(salary) OVER w AS diff_salary_current_previous,
+    LEAD(salary) OVER w - salary AS diff_salary_next_current
+FROM
+	salaries
+WHERE emp_no = 10001
+WINDOW w AS (ORDER BY salary);
+
+/*
+Penjelasan Detail mengenai LAG() dan LEAD():
+
+1. LAG() Function:
+- LAG() digunakan untuk mendapatkan nilai dari baris 
+sebelumnya dalam hasil kueri yang diurutkan.
+
+Example Script:
+LAG(expression [, offset [, default_value]]) OVER (PARTITION BY partition_expression ORDER BY sort_expression)
+
+Penjelasan Parameter:
+- expression: 
+Kolom atau ekspresi yang nilainya ingin diambil dari baris sebelumnya.
+
+- offset (opsional): 
+Menentukan berapa banyak baris sebelumnya yang akan diambil. Defaultnya adalah 1.
+
+- default_value (opsional): 
+Nilai default yang akan digunakan jika tidak ada baris sebelumnya yang tersedia.
+
+Example Penerapan:
+LAG(salary) OVER (ORDER BY hire_date) AS previous_salary
+
+Kegunaan:
+- Berguna untuk mengekstrak nilai dari baris sebelumnya, 
+yang dapat digunakan, misalnya, untuk menghitung perubahan antarbaris 
+atau mendapatkan nilai sebelumnya dalam suatu rangkaian waktu.
+
+2. LEAD() Function:
+LEAD() digunakan untuk mendapatkan nilai dari baris 
+berikutnya dalam hasil kueri yang diurutkan.
+
+Example Script:
+LEAD(expression [, offset [, default_value]]) OVER (PARTITION BY partition_expression ORDER BY sort_expression)
+
+Penjelasan Parameter:
+- expression: 
+Kolom atau ekspresi yang nilainya ingin diambil dari baris berikutnya.
+
+- offset (opsional): 
+Menentukan berapa banyak baris berikutnya yang akan diambil. Defaultnya adalah 1.
+
+- default_value (opsional): 
+Nilai default yang akan digunakan jika tidak ada baris berikutnya yang tersedia.
+
+Example Penerapan:
+LEAD(salary) OVER (ORDER BY hire_date) AS next_salary
+
+Kegunaan:
+- Berguna untuk mendapatkan nilai dari baris berikutnya, 
+yang dapat digunakan, misalnya, untuk menghitung perubahan antarbaris 
+atau mendapatkan nilai selanjutnya dalam suatu rangkaian waktu.
+
+*/
+
+-- Contoh penerapan bersama lainnya LAG() dan LEAD():
+/*
+Misalkan kita memiliki tabel gaji (salaries) yang diurutkan 
+berdasarkan hire_date, dan kita ingin mendapatkan informasi 
+gaji sebelumnya dan gaji selanjutnya untuk setiap pegawai. 
+Kita dapat menggunakan LAG() dan LEAD() untuk mencapai hal ini.
+*/
+SELECT
+	e.emp_no,
+    LAG(s.salary) OVER(ORDER BY e.hire_date) AS previous_salary,
+    LEAD(s.salary) OVER(ORDER BY e.hire_date) AS next_salary
+FROM 
+	employees e
+JOIN 
+	salaries s ON e.emp_no = s.emp_no
+LIMIT 100;
+
+/*
+Kesimpulan:
+LAG() dan LEAD() sangat berguna dalam mengakses nilai dari baris 
+sebelumnya atau baris selanjutnya dalam hasil kueri yang diurutkan. 
+Fungsi ini dapat membantu dalam analisis data berurutan atau temporal.
+*/
 
 /*------------------------------------------------------------------------------------*/
