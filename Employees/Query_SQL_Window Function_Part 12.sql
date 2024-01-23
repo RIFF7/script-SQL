@@ -1209,3 +1209,28 @@ fungsi ini tergantung pada kebutuhan analisis data tertentu.
 */
 
 /*------------------------------------------------------------------------------------*/
+
+-- Masuk pada pembahasan MySQL Aggregate Functions in the Context of Window Functions - Part I
+/*
+Create a MySQL query that will extract the following information about
+all currently employed workers registered in the dept_emp table:
+
+- their employee number
+- the department they are working in
+- the salary they are currently being paid (=the salary value specified in their latest contract)
+- the all-time average salary paid in the department the employee is currently working in
+(=use a window function to create a field named average_salary_per_department)
+*/
+SELECT SYSDATE();
+
+SELECT
+	emp_no,
+    salary,
+    from_date,
+    to_date
+FROM
+	salaries
+WHERE
+	to_date > SYSDATE();
+
+/*------------------------------------------------------------------------------------*/
