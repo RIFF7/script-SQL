@@ -1455,3 +1455,181 @@ WHERE
 	s.from_date = s1.from_date;
 
 /*------------------------------------------------------------------------------------*/
+
+-- Masuk pada pembahasan MySQL Aggregate Functions in the Context of Window Functions - Part II
+/*
+Query dibawah adalah pernyataan SQL yang mengambil data dari tabel "dept_emp" 
+untuk karyawan yang masih bekerja pada saat ini dalam departemen mereka.
+
+Tabel Utama (dept_emp):
+- Ini menunjukkan bahwa data diambil dari tabel "dept_emp" 
+dan diberi alias "de" untuk referensi dalam query.
+
+Subquery (de1):
+- Subquery ini mengambil nilai maksimum dari kolom "from_date" untuk 
+setiap "emp_no" dalam tabel "dept_emp". Hasilnya diberi alias "de1".
+
+JOIN antara tabel "dept_emp" dan subquery (de1):
+- Ini adalah klausa JOIN yang menggabungkan tabel "dept_emp" (diberi alias "de") 
+dengan subquery "de1" berdasarkan kolom "emp_no". Tujuannya adalah untuk mendapatkan 
+baris yang sesuai dengan nilai maksimum "from_date" untuk setiap "emp_no".
+
+Klausa WHERE:
+Klausa WHERE ini menyaring hasil gabungan berdasarkan dua kondisi:
+- Hanya baris dengan "to_date" yang lebih besar dari tanggal sistem (SYSDATE()) 
+yang akan disertakan. Ini menunjukkan bahwa karyawan masih bekerja pada saat ini.
+
+- Hanya baris di mana "from_date" di tabel "dept_emp" sama dengan nilai maksimum "from_date" 
+yang dihasilkan oleh subquery "de1" yang akan disertakan. Ini memastikan bahwa hanya entri 
+terbaru untuk setiap karyawan yang akan dimasukkan ke dalam hasil query.
+
+Jadi, query ini mengambil informasi tentang karyawan yang masih bekerja saat ini dalam 
+departemen mereka, dengan mempertimbangkan entri terbaru untuk setiap karyawan berdasarkan 
+nilai maksimum "from_date".
+
+*/
+SELECT
+	de.emp_no,
+    de.dept_no,
+    de.from_date,
+    de.to_date
+FROM
+	dept_emp de
+		JOIN
+	(
+		SELECT
+			emp_no,
+            MAX(from_date) AS from_date
+		FROM 
+			dept_emp
+		GROUP BY emp_no
+    ) AS de1 ON de.emp_no = de1.emp_no
+WHERE
+	de.to_date > SYSDATE()
+		AND de.from_date = de1.from_date;
+
+-- Mencari AVG salary setiap departments
+/*
+Query dibawah adalah pernyataan SQL yang menggabungkan informasi dari tabel 
+"dept_emp", "salaries", dan "departments" untuk mendapatkan rincian tentang karyawan, 
+departemen, gaji, dan rata-rata gaji per departemen.
+
+Subquery de2:
+- Subquery ini mengambil data dari tabel "dept_emp" untuk karyawan yang masih 
+bekerja saat ini dalam departemen mereka. Hanya entri terbaru untuk setiap 
+karyawan yang diambil menggunakan JOIN dengan subquery "de1". Hasilnya diberi alias "de2".
+
+Subquery s2:
+- Subquery ini mengambil data dari tabel "salaries" untuk mendapatkan gaji terkini 
+untuk setiap karyawan. Hanya entri terbaru untuk setiap karyawan yang diambil menggunakan 
+JOIN dengan subquery "s1". Hasilnya diberi alias "s2".
+
+JOIN antara subquery "de2" dan subquery "s2":
+- Menggabungkan hasil dari subquery "de2" dan subquery "s2" berdasarkan nomor 
+karyawan ("emp_no") untuk mendapatkan informasi tentang karyawan, departemen, dan gaji.
+
+Klausa GROUP BY dan WINDOW clause:
+- Menyusun hasil query berdasarkan nomor karyawan dan nama departemen. 
+WINDOW clause digunakan untuk mendefinisikan partisi (PARTITION) berdasarkan nomor departemen.
+
+Klausa SELECT dan AVG():
+- Memilih kolom-kolom yang ingin ditampilkan, termasuk kolom gaji dan rata-rata gaji per departemen 
+menggunakan fungsi AVG() dengan klausa OVER.
+
+Klausa ORDER BY:
+- Mengurutkan hasil query berdasarkan nomor karyawan.
+
+Dengan demikian, query ini memberikan informasi tentang karyawan, departemen, gaji, 
+dan rata-rata gaji per departemen untuk karyawan yang masih aktif.
+
+*/
+SELECT
+	de2.emp_no,
+    d.dept_name,
+    s2.salary,
+    AVG(s2.salary) OVER w AS average_salary_per_department
+FROM (
+	SELECT
+		de.emp_no,
+        de.dept_no,
+        de.from_date,
+        de.to_date
+	FROM
+		dept_emp de
+			JOIN
+		(
+			SELECT
+				emp_no,
+                MAX(from_date) AS from_date
+			FROM
+				dept_emp
+			GROUP BY emp_no
+        ) AS de1 ON de.emp_no = de1.emp_no
+	WHERE
+		de.to_date > SYSDATE()
+			AND de.from_date = de1.from_date
+) AS de2 JOIN (
+	SELECT
+		s1.emp_no,
+        s.salary,
+        s.from_date,
+        s.to_date
+	FROM
+		salaries s
+			JOIN
+		(
+			SELECT
+				emp_no,
+                MAX(from_date) AS from_date
+			FROM
+				salaries
+			GROUP BY emp_no
+        ) AS s1 ON s.emp_no = s1.emp_no
+	WHERE
+		s.to_date > SYSDATE()
+			AND s.from_date = s1.from_date
+) AS s2 ON de2.emp_no = s2.emp_no
+	JOIN
+departments d ON d.dept_no = de2.dept_no
+GROUP BY de2.emp_no, d.dept_name
+WINDOW w AS (PARTITION BY de2.dept_no)
+ORDER BY de2.emp_no;
+
+-- Exercise Number 1
+/*
+Consider the employees' contracts that have been signed after the 1st of 
+January 2000 and terminated before the 1st of January 2002 (as registered in the "dept_emp" table).
+
+Create a MySQL query that will extract the following information about these employees:
+- Their employee number
+
+- The salary values of the latest contracts they have signed during the suggested time period
+
+- The department they have been working in (as specified in the latest contract they've 
+signed during the suggested time period)
+
+- Use a window function to create a fourth field containing the average salary paid 
+in the department the employee was last working in during the suggested time period. 
+Name that field "average_salary_per_department".
+
+Note1: 
+This exercise is not related neither to the query you created nor to the output 
+you obtained while solving the exercises after the previous lecture.
+
+Note2: 
+Now we are asking you to practically create the same query as the one we 
+worked on during the video lecture; the only difference being to refer to 
+contracts that have been valid within the period between the 1st of January 2000 
+and the 1st of January 2002.
+
+Note3: 
+We invite you solve this task after assuming that the "to_date" values 
+stored in the "salaries" and "dept_emp" tables are greater than the 
+"from_date" values stored in these same tables. If you doubt that, 
+you could include a couple of lines in your code to ensure that this is the case anyway!
+
+Hint: If you've worked correctly, you should obtain an output containing 200 rows.
+*/
+
+
+/*------------------------------------------------------------------------------------*/
