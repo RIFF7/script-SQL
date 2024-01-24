@@ -1548,8 +1548,8 @@ SELECT
     d.dept_name,
     s2.salary,
     AVG(s2.salary) OVER w AS average_salary_per_department
-FROM (
-	SELECT
+FROM( 
+	SELECT -- Subquery 1
 		de.emp_no,
         de.dept_no,
         de.from_date,
@@ -1557,8 +1557,8 @@ FROM (
 	FROM
 		dept_emp de
 			JOIN
-		(
-			SELECT
+		( 
+			SELECT -- Subquery 2
 				emp_no,
                 MAX(from_date) AS from_date
 			FROM
@@ -1568,8 +1568,8 @@ FROM (
 	WHERE
 		de.to_date > SYSDATE()
 			AND de.from_date = de1.from_date
-) AS de2 JOIN (
-	SELECT
+) AS de2 JOIN ( 
+	SELECT -- Subquery 3
 		s1.emp_no,
         s.salary,
         s.from_date,
@@ -1577,8 +1577,8 @@ FROM (
 	FROM
 		salaries s
 			JOIN
-		(
-			SELECT
+		( 
+			SELECT -- Subquery 4
 				emp_no,
                 MAX(from_date) AS from_date
 			FROM
@@ -1630,6 +1630,103 @@ you could include a couple of lines in your code to ensure that this is the case
 
 Hint: If you've worked correctly, you should obtain an output containing 200 rows.
 */
+SELECT
+	de2.emp_no,
+    d.dept_name,
+    s2.salary,
+    AVG(s2.salary) OVER w AS average_salary_per_department
+FROM( 
+	SELECT -- Subquery 1
+		de.emp_no,
+        de.dept_no,
+        de.from_date,
+        de.to_date
+	FROM
+		dept_emp de
+			JOIN
+		( 
+			SELECT -- Subquery 2
+				emp_no,
+                MAX(from_date) AS from_date
+			FROM
+				dept_emp
+			GROUP BY emp_no
+        ) AS de1 ON de.emp_no = de1.emp_no
+	WHERE
+		de.to_date < '2002-01-01'
+			AND de.from_date > '2000-01-01'
+            AND de.from_date = de1.from_date
+) AS de2 JOIN( 
+	SELECT -- Subquery 3
+		s1.emp_no,
+        s.salary,
+        s.from_date,
+        s.to_date
+	FROM
+		salaries s
+			JOIN
+		( 
+			SELECT -- Subquery 4
+				emp_no,
+                MAX(from_date) AS from_date
+			FROM
+				salaries
+			GROUP BY emp_no
+        ) AS s1 ON s.emp_no = s1.emp_no
+	WHERE
+		s.to_date < '2002-01-01'
+			AND s.from_date > '2000-01-01'
+            AND s.from_date = s1.from_date
+) AS s2 ON de2.emp_no = s2.emp_no
+	JOIN
+departments d ON de2.dept_no = d.dept_no
+GROUP BY de2.emp_no, d.dept_name
+WINDOW w AS (PARTITION BY de2.dept_no)
+ORDER BY de2.emp_no, s2.salary;
 
+/*
+Penjelasan Query diatas:
+
+Query diatas adalah pernyataan SQL yang menggabungkan informasi dari tabel 
+"dept_emp", "salaries", dan "departments" untuk mendapatkan rincian tentang karyawan, 
+departemen, gaji, dan rata-rata gaji per departemen. Selain itu, 
+query ini memperhitungkan kondisi waktu tertentu dengan membatasi tanggal mulai 
+("from_date") dan tanggal berakhir ("to_date"). 
+
+Subquery de2:
+- Subquery ini mengambil data dari tabel "dept_emp" untuk karyawan yang bekerja 
+pada rentang waktu tertentu. Hanya entri terbaru untuk setiap karyawan yang diambil 
+menggunakan JOIN dengan subquery "de1". Hasilnya diberi alias "de2".
+
+Subquery s2:
+- Subquery ini mengambil data dari tabel "salaries" untuk mendapatkan gaji terkini untuk 
+setiap karyawan pada rentang waktu tertentu. Hanya entri terbaru untuk setiap karyawan 
+yang diambil menggunakan JOIN dengan subquery "s1". Hasilnya diberi alias "s2".
+
+JOIN antara subquery "de2" dan subquery "s2":
+Menggabungkan hasil dari subquery "de2" dan subquery "s2" berdasarkan nomor karyawan ("emp_no") 
+dan nomor departemen ("dept_no"). Tujuannya adalah untuk mendapatkan baris yang sesuai dengan 
+nilai maksimum "from_date" untuk setiap "emp_no" dari tabel "dept_emp" dan "salaries".
+
+Klausa GROUP BY dan WINDOW clause:
+- Menyusun hasil query berdasarkan nomor karyawan dan nama departemen. 
+WINDOW clause digunakan untuk mendefinisikan partisi (PARTITION) berdasarkan nomor departemen.
+
+Klausa SELECT dan AVG():
+- Memilih kolom-kolom yang ingin ditampilkan, termasuk kolom gaji dan rata-rata 
+gaji per departemen menggunakan fungsi AVG() dengan klausa OVER.
+
+Klausa WHERE untuk Batasan Waktu:
+- Menyaring hasil gabungan berdasarkan rentang waktu tertentu untuk tanggal "to_date" 
+dan "from_date" dari tabel "dept_emp" dan "salaries".
+
+Klausa ORDER BY:
+- Mengurutkan hasil query berdasarkan nomor karyawan dan gaji.
+
+Dengan demikian, query ini memberikan informasi tentang karyawan, departemen, 
+gaji, dan rata-rata gaji per departemen untuk karyawan yang memenuhi syarat 
+dalam rentang waktu tertentu.
+
+*/
 
 /*------------------------------------------------------------------------------------*/
