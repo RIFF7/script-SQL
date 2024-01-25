@@ -940,3 +940,67 @@ FROM cte_m_highest_salary c2
 JOIN cte_avg_salary c1;
 
 /*------------------------------------------------------------------------------------*/
+
+-- Pembahasan Mengenai Referring to Common Table Expressions in a WITH Clause
+-- Tanpa CTE
+SELECT 
+    *
+FROM
+    employees
+WHERE
+    hire_date > '2000-01-01';
+
+-- Menggunakan CTE
+WITH emp_hired_from_jan_2000 AS(
+	SELECT 
+		*
+	FROM
+		employees
+	WHERE
+		hire_date > '2000-01-01'
+),
+highest_contracts_salary_values AS(
+	SELECT
+		e.emp_no,
+        MAX(s.salary) AS max_salary
+	FROM salaries s
+    JOIN emp_hired_from_jan_2000 e ON s.emp_no = e.emp_no
+    GROUP BY 1
+)
+SELECT
+	*
+FROM highest_contracts_salary_values;
+
+-- Ubah tata letak dari query diatas [Ini akan menampilkan error 1146]
+/*
+Untuk penjelasan mengapa ketika CTE Ke-2 diubah menjadi pertama
+dan CTE Ke-1 diubah menjadi kedua sehingga menghasilkan 'Error Code: 1146'
+dikarenakan pada penggunaan JOIN untuk CTE 'emp_hired_from_jan_2000' (CTE Ke-1)
+dipanggil sebelum didefinisikan. Ini menyebabkan kesalahan karena 
+CTE tersebut tidak dikenali saat diakses oleh CTE lainnya.
+
+Sehingga jika ingin menjalankan kembali query, lebih baik menggunakan
+CTE seperti yang ditulis sebelumnya atau bisa didefinikan terlebih dahulu
+sebelum dilakukan JOIN dengan table lainnya.
+*/
+WITH highest_contracts_salary_values AS(
+	SELECT
+		e.emp_no,
+        MAX(s.salary) AS max_salary
+	FROM salaries s
+    JOIN emp_hired_from_jan_2000 e ON s.emp_no = e.emp_no
+    GROUP BY 1
+),
+emp_hired_from_jan_2000 AS(
+	SELECT 
+		*
+	FROM
+		employees
+	WHERE
+		hire_date > '2000-01-01'
+)
+SELECT
+	*
+FROM highest_contracts_salary_values;
+
+/*------------------------------------------------------------------------------------*/
