@@ -767,6 +767,34 @@ Use two common table expressions and a SUM() function in the SELECT statement
 of a query to obtain the number of male employees whose highest salaries 
 have been below the all-time average.
 */
+/*
+
+Query dibawah ini bertujuan untuk menghitung statistik terkait dengan 
+gaji tertinggi di antara karyawan laki-laki yang berada di bawah rata-rata gaji semua karyawan. 
+
+Mari kita jelaskan langkah-langkahnya:
+
+WITH Clause (CTE):
+- cte_avg_salary: Menghitung rata-rata gaji dari tabel "salaries".
+
+- cte_m_highest_salary: Menghitung gaji tertinggi untuk setiap 
+karyawan laki-laki dari tabel "salaries".
+
+SELECT Statement:
+JOIN dengan CTE dan Tabel:
+- Menggabungkan hasil dari dua CTE ("cte_m_highest_salary" dan "cte_avg_salary") 
+dengan tabel "employees". Penggabungan ini melibatkan JOIN antara "cte_m_highest_salary" 
+dan "cte_avg_salary" dengan "employees".
+
+Penggunaan CASE statement:
+- Menggunakan CASE statement dalam SUM() untuk menghitung jumlah karyawan laki-laki 
+yang memiliki gaji tertinggi di bawah rata-rata.
+
+Hasil Output:
+- Query ini menghasilkan satu kolom, yaitu "m_highest_salary_below_avg", 
+yang berisi jumlah karyawan laki-laki yang memiliki gaji tertinggi di bawah rata-rata.
+
+*/
 WITH cte_avg_salary AS(
 	SELECT
 		AVG(salary) AS avg_salary
@@ -798,6 +826,35 @@ Use two common table expressions and a COUNT() function in the SELECT statement
 of a query to obtain the number of male employees whose highest salaries 
 have been below the all-time average.
 */
+/*
+Query dibawah ini bertujuan untuk menghitung jumlah gaji tertinggi 
+di antara karyawan laki-laki yang berada di bawah rata-rata gaji semua karyawan. 
+
+Mari kita jelaskan langkah-langkahnya:
+
+WITH Clause (CTE):
+- cte_avg_salary: Menghitung rata-rata gaji dari tabel "salaries".
+
+- cte_m_highest_salary: Menghitung gaji tertinggi untuk setiap 
+karyawan laki-laki dari tabel "salaries".
+
+SELECT Statement:
+JOIN dengan CTE dan Tabel:
+- Menggabungkan hasil dari dua CTE ("cte_m_highest_salary" dan "cte_avg_salary") 
+dengan tabel "employees". Penggabungan ini melibatkan JOIN antara "cte_m_highest_salary" 
+dan "cte_avg_salary" dengan "employees".
+
+Penggunaan CASE statement:
+- Menggunakan CASE statement dalam COUNT() untuk menghitung jumlah gaji tertinggi 
+di antara karyawan laki-laki yang berada di bawah rata-rata. 
+Jika gaji tertinggi lebih kecil dari rata-rata, nilai yang dihitung adalah 
+gaji tertinggi tersebut; jika tidak, nilai yang dihitung adalah NULL.
+
+Hasil Output:
+- Query ini menghasilkan satu kolom, yaitu "max_salary", yang berisi jumlah 
+gaji tertinggi di antara karyawan laki-laki yang berada di bawah rata-rata.
+
+*/
 WITH cte_avg_salary AS(
 	SELECT
 		AVG(salary) AS avg_salary
@@ -828,6 +885,35 @@ JOIN cte_avg_salary c1;
 Does the result from the previous exercise change if you used 
 the Common Table Expression (CTE) for the male employees' 
 highest salaries in a FROM clause, as opposed to in a join?
+*/
+/*
+Query dibawah ini juga memiliki tujuan yang serupa dengan query sebelumnya, 
+yaitu menghitung jumlah gaji tertinggi di antara karyawan 
+laki-laki yang berada di bawah rata-rata gaji semua karyawan. 
+
+Mari kita jelaskan langkah-langkahnya:
+
+WITH Clause (CTE):
+- cte_avg_salary: Menghitung rata-rata gaji dari tabel "salaries".
+
+- cte_m_highest_salary: Menghitung gaji tertinggi untuk 
+setiap karyawan laki-laki dari tabel "salaries".
+
+SELECT Statement:
+JOIN dengan CTE:
+- Menggabungkan hasil dari dua CTE ("cte_m_highest_salary" dan "cte_avg_salary"). 
+Penggabungan ini melibatkan JOIN antara "cte_m_highest_salary" dan "cte_avg_salary".
+
+Penggunaan CASE statement:
+- Menggunakan CASE statement dalam COUNT() untuk menghitung jumlah gaji tertinggi 
+di antara karyawan laki-laki yang berada di bawah rata-rata. 
+Jika gaji tertinggi lebih kecil dari rata-rata, nilai yang dihitung adalah 
+gaji tertinggi tersebut; jika tidak, nilai yang dihitung adalah NULL.
+
+Hasil Output:
+- Query ini menghasilkan satu kolom, yaitu "max_salary", yang berisi jumlah gaji tertinggi 
+di antara karyawan laki-laki yang berada di bawah rata-rata.
+
 */
 WITH cte_avg_salary AS(
 	SELECT
