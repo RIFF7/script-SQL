@@ -415,7 +415,29 @@ SELECT statement in a query to find out how many male employees have
 never signed a contract with a salary value higher than or equal 
 to the all-time company salary average.
 */
-
+WITH rerata AS(
+	SELECT
+		AVG(salary) AS avg_salary
+	FROM salaries
+)
+SELECT
+	SUM(
+		/*
+        Penggunaan CASE statement:
+        - Menggunakan CASE statement dalam SUM() untuk menghitung 
+        jumlah karyawan laki-laki yang memiliki gaji di bawah rata-rata. 
+        Jika gaji kurang dari rata-rata, nilai yang dihitung adalah 1, 
+        dan jika tidak, nilai yang dihitung adalah 0.
+        */
+		CASE
+			WHEN s.salary < r.avg_salary THEN 1
+            ELSE 0
+		END
+    ) AS no_salaries_below_avg,
+    COUNT(s.salary) AS no_of_salary_contracts
+FROM salaries s
+JOIN employees e ON s.emp_no = e.emp_no AND e.gender = 'M'
+JOIN rerata r;
 
 -- Exercise Number 2
 /*
@@ -424,6 +446,29 @@ in the SELECT statement of a query to find out how many male employees have
 never signed a contract with a salary value higher than or equal 
 to the all-time company salary average.
 */
+WITH rerata2 AS(
+	SELECT
+		AVG(salary) AS avg_salary
+	FROM salaries
+)
+SELECT
+	COUNT(
+		/*
+        Penggunaan CASE statement:
+		- Menggunakan CASE statement dalam COUNT() untuk menghitung jumlah 
+        gaji karyawan laki-laki yang berada di bawah rata-rata. Jika gaji 
+        kurang dari rata-rata, nilai yang dihitung adalah gaji tersebut; 
+        jika tidak, nilai yang dihitung adalah NULL.
+        */
+		CASE
+			WHEN s.salary < r.avg_salary THEN s.salary
+            ELSE NULL
+		END
+    ) AS no_salaries_below_avg_w_count,
+    COUNT(s.salary) AS no_of_salary_contracts
+FROM salaries s
+JOIN employees e ON s.emp_no = e.emp_no AND e.gender = 'M'
+JOIN rerata2 r;
 
 -- Exercise Number 3
 /*
@@ -432,6 +477,28 @@ how many male employees have never signed a contract with a salary value higher
 than or equal to the all-time company salary average (i.e. to obtain the same 
 result as in the previous exercise).
 */
+SELECT
+	COUNT(
+		/*
+        Penggunaan CASE statement:
+		- Menggunakan CASE statement dalam COUNT() untuk menghitung jumlah 
+        gaji karyawan laki-laki yang berada di bawah rata-rata. Jika gaji 
+        kurang dari rata-rata, nilai yang dihitung adalah gaji tersebut; 
+        jika tidak, nilai yang dihitung adalah NULL.
+        */
+		CASE
+			WHEN s.salary < a.avg_salary THEN s.salary
+            ELSE NULL
+		END
+    ) AS no_salaries_below_avg_w_count,
+    COUNT(s.salary) AS no_of_salary_contracts
+FROM salaries s
+JOIN employees e ON s.emp_no = e.emp_no AND e.gender = 'M'
+JOIN (
+	SELECT
+		AVG(salary) AS avg_salary
+	FROM salaries
+) AS a;
 
 -- Exercise Number 4
 /*
@@ -439,6 +506,42 @@ Use a cross join in a query to find out how many male employees have never signe
 a contract with a salary value higher than or equal to the all-time company salary 
 average (i.e. to obtain the same result as in the previous exercise).
 */
+WITH rerata3 AS(
+	SELECT
+		AVG(salary) AS avg_salary
+	FROM salaries
+)
+SELECT
+	SUM(
+		/*
+        Penggunaan CASE statement:
+        - Menggunakan CASE statement dalam SUM() untuk menghitung 
+        jumlah karyawan laki-laki yang memiliki gaji di bawah rata-rata. 
+        Jika gaji kurang dari rata-rata, nilai yang dihitung adalah 1, 
+        dan jika tidak, nilai yang dihitung adalah 0.
+        */
+		CASE
+			WHEN s.salary < r.avg_salary THEN 1
+            ELSE 0
+		END
+    ) AS no_salaries_below_avg_w_sum,
+	COUNT(
+		/*
+        Penggunaan CASE statement:
+		- Menggunakan CASE statement dalam COUNT() untuk menghitung jumlah 
+        gaji karyawan laki-laki yang berada di bawah rata-rata. Jika gaji 
+        kurang dari rata-rata, nilai yang dihitung adalah gaji tersebut; 
+        jika tidak, nilai yang dihitung adalah NULL.
+        */
+		CASE
+			WHEN s.salary < r.avg_salary THEN s.salary
+            ELSE NULL
+		END
+    ) AS no_salaries_below_avg_w_count,
+    COUNT(s.salary) AS no_of_salary_contracts
+FROM salaries s
+JOIN employees e ON s.emp_no = e.emp_no AND e.gender = 'M'
+CROSS JOIN rerata3 r;
 
 /*------------------------------------------------------------------------------------*/
 
