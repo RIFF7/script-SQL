@@ -545,4 +545,220 @@ CROSS JOIN rerata3 r;
 
 /*------------------------------------------------------------------------------------*/
 
+-- Pembahasan Using Multiple Subclauses in a WITH Clause
+-- Mencari Nilai MAX() salary tanpa CTE
+-- Example 1 [Menggunakan JOIN]
+SELECT
+	s.emp_no,
+    MAX(s.salary) AS highest_salary
+FROM salaries s
+JOIN employees e ON e.emp_no = s.emp_no AND e.gender = 'F'
+GROUP BY 1;
+
+-- Example 2 [Menggunakan WHERE clause]
+SELECT
+	s.emp_no,
+    MAX(s.salary) AS highest_salary
+FROM salaries s
+JOIN employees e ON e.emp_no = s.emp_no 
+WHERE e.gender = 'F'
+GROUP BY 1;
+
+-- Contoh penggunaan 2 CTE
+-- Example 1
+WITH cte1 AS(
+	SELECT
+		AVG(salary) AS avg_salary
+	FROM salaries
+),
+cte2 AS(
+	SELECT
+		s.emp_no,
+        MAX(s.salary) AS f_highest_salary
+	FROM salaries s
+    JOIN employees e ON e.emp_no = s.emp_no
+		AND e.gender = 'F'
+	GROUP BY 1
+)
+SELECT
+	SUM(
+		CASE
+			WHEN c2.f_highest_salary > c1.avg_salary THEN 1
+            ELSE 0
+		END
+    ) AS f_highest_salaries_above_avg,
+    COUNT(e.emp_no) AS total_no_female_contracts
+FROM employees e
+JOIN cte2 c2 ON e.emp_no = c2.emp_no
+CROSS JOIN cte1 c1;
+
+-- Example 2
+WITH cte3 AS(
+	SELECT
+		AVG(salary) AS avg_salary
+	FROM salaries
+),
+cte4 AS(
+	SELECT
+		s.emp_no,
+        MAX(s.salary) AS f_highest_salary
+	FROM salaries s
+    JOIN employees e ON e.emp_no = s.emp_no
+		AND e.gender = 'F'
+	GROUP BY 1
+)
+SELECT
+	COUNT(
+		CASE
+			WHEN c4.f_highest_salary > c3.avg_salary THEN c4.f_highest_salary
+            ELSE NULL
+		END
+    ) AS f_highest_salary_above_avg,
+    COUNT(e.emp_no) AS total_no_female_contracts
+FROM employees e
+JOIN cte4 c4 ON e.emp_no = c4.emp_no
+CROSS JOIN cte3 c3;
+
+-- Example 3
+WITH cte5 AS(
+	SELECT
+		AVG(salary) AS avg_salary
+	FROM salaries
+),
+cte6 AS(
+	SELECT
+		s.emp_no,
+        MAX(s.salary) AS f_highest_salary
+	FROM salaries s
+    JOIN employees e ON e.emp_no = s.emp_no
+		AND e.gender = 'F'
+	GROUP BY 1
+)
+SELECT
+	SUM(
+		CASE
+			WHEN c6.f_highest_salary > c5.avg_salary THEN 1
+            ELSE 0
+		END
+    ) AS f_highest_salaries_above_avg,
+    COUNT(e.emp_no) AS total_no_female_contracts,
+    ROUND((
+		SUM(
+			CASE
+				WHEN c6.f_highest_salary > c5.avg_salary THEN 1
+                ELSE 0
+			END
+        ) / COUNT(e.emp_no)
+    ) * 100, 2) AS round_percent
+FROM employees e
+JOIN cte6 c6 ON e.emp_no = c6.emp_no
+CROSS JOIN cte5 c5;
+
+-- Example 4 [Menggunakan CONCAT(ROUND(expression))]
+WITH cte5 AS(
+	SELECT
+		AVG(salary) AS avg_salary
+	FROM salaries
+),
+cte6 AS(
+	SELECT
+		s.emp_no,
+        MAX(s.salary) AS f_highest_salary
+	FROM salaries s
+    JOIN employees e ON e.emp_no = s.emp_no
+		AND e.gender = 'F'
+	GROUP BY 1
+)
+SELECT
+	SUM(
+		CASE
+			WHEN c6.f_highest_salary > c5.avg_salary THEN 1
+            ELSE 0
+		END
+    ) AS f_highest_salaries_above_avg,
+    COUNT(e.emp_no) AS total_no_female_contracts,
+    CONCAT(ROUND((
+		SUM(
+			CASE
+				WHEN c6.f_highest_salary > c5.avg_salary THEN 1
+                ELSE 0
+			END
+        ) / COUNT(e.emp_no)
+    ) * 100, 2), '%') AS '% Percentage'
+FROM employees e
+JOIN cte6 c6 ON e.emp_no = c6.emp_no
+CROSS JOIN cte5 c5;
+
+-- Penulisan Variable Query CTE yang lebih baik dari beberapa example sebelumnya
+/*
+Query dibawah ini bertujuan untuk menghitung statistik terkait dengan 
+gaji tertinggi di antara karyawan perempuan dibandingkan dengan rata-rata 
+gaji semua karyawan. 
+
+Mari kita jelaskan langkah-langkahnya:
+
+WITH Clause (CTE):
+- cte_avg_salary: Menghitung rata-rata gaji dari tabel "salaries".
+- cte_f_highest_salary: Menghitung gaji tertinggi untuk setiap karyawan perempuan dari tabel "salaries".
+
+SELECT Statement:
+JOIN dan CROSS JOIN:
+- Menggabungkan hasil dari dua CTE ("cte_f_highest_salary" dan "cte_avg_salary") 
+dengan tabel "employees". Penggabungan ini melibatkan CROSS JOIN antara 
+"cte_f_highest_salary" dan "cte_avg_salary" karena tidak ada kondisi penggabungan yang diberikan.
+
+Penggunaan CASE statement:
+- Dua kali menggunakan CASE statement dalam SUM() untuk menghitung 
+jumlah karyawan perempuan yang memiliki gaji tertinggi di atas rata-rata 
+dan menghitung total jumlah kontrak karyawan perempuan.
+
+Perhitungan Persentase:
+- Menggunakan CONCAT() dan ROUND() untuk menghasilkan persentase dari karyawan 
+perempuan yang memiliki gaji tertinggi di atas rata-rata.
+
+Hasil Output:
+# Query ini menghasilkan tiga kolom:
+- "f_highest_salaries_above_avg" yang berisi jumlah karyawan perempuan 
+yang memiliki gaji tertinggi di atas rata-rata.
+
+- "total_no_female_contracts" yang berisi total jumlah kontrak karyawan perempuan.
+
+- "% Percentage" yang berisi persentase dari karyawan perempuan yang 
+memiliki gaji tertinggi di atas rata-rata.
+
+*/
+WITH cte_avg_salary AS(
+	SELECT
+		AVG(salary) AS avg_salary
+	FROM salaries
+),
+cte_f_highest_salary AS(
+	SELECT
+		s.emp_no,
+        MAX(s.salary) AS f_highest_salary
+	FROM salaries s
+    JOIN employees e ON e.emp_no = s.emp_no
+		AND e.gender = 'F'
+	GROUP BY 1
+)
+SELECT
+	SUM(
+		CASE
+			WHEN c2.f_highest_salary > c1.avg_salary THEN 1
+            ELSE 0
+		END
+    ) AS f_highest_salaries_above_avg,
+    COUNT(e.emp_no) AS total_no_female_contracts,
+    CONCAT(ROUND((
+		SUM(
+			CASE
+				WHEN c2.f_highest_salary > c1.avg_salary THEN 1
+                ELSE 0
+			END
+        ) / COUNT(e.emp_no)
+    ) * 100, 2), '%') AS '% Percentage'
+FROM employees e
+JOIN cte_f_highest_salary c2 ON e.emp_no = c2.emp_no
+CROSS JOIN cte_avg_salary c1;
+
 /*------------------------------------------------------------------------------------*/
