@@ -951,6 +951,30 @@ WHERE
     hire_date > '2000-01-01';
 
 -- Menggunakan CTE
+/*
+Query dibawah ini menggunakan Common Table Expressions (CTE) 
+untuk menghasilkan informasi tentang karyawan yang dipekerjakan 
+setelah tanggal 1 Januari 2000 dan nilai gaji tertinggi untuk setiap 
+karyawan tersebut. 
+
+Berikut adalah penjelasan langkah-langkahnya:
+
+CTE "emp_hired_from_jan_2000":
+- CTE pertama, emp_hired_from_jan_2000, menghasilkan seluruh kolom dari tabel "employees" 
+untuk karyawan yang dipekerjakan setelah tanggal 1 Januari 2000.
+
+CTE "highest_contracts_salary_values":
+- CTE kedua, highest_contracts_salary_values, menghitung gaji tertinggi (max_salary) 
+untuk setiap karyawan yang dipekerjakan setelah tanggal 1 Januari 2000. 
+CTE ini menggunakan JOIN dengan CTE pertama untuk memastikan bahwa hanya 
+karyawan yang memenuhi kriteria tersebut yang dimasukkan dalam perhitungan.
+
+SELECT Statement:
+- Statement SELECT terakhir mengambil semua kolom dari CTE "highest_contracts_salary_values". 
+Dengan demikian, hasil akhir dari query ini adalah daftar karyawan yang dipekerjakan setelah 
+tanggal 1 Januari 2000 dan gaji tertinggi yang diterima oleh setiap karyawan tersebut.
+
+*/
 WITH emp_hired_from_jan_2000 AS(
 	SELECT 
 		*
