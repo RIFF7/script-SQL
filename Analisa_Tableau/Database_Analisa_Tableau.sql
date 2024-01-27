@@ -146,4 +146,88 @@ JOIN t_departments td ON tdm.dept_no = td.dept_no
 JOIN t_employees te ON tdm.emp_no = te.emp_no
 ORDER BY 3, 6;
 
+/*
+Query diatas digunakan untuk menampilkan informasi tentang manajer departemen, 
+termasuk tahun kalendar di mana manajer tersebut aktif. 
+
+Mari kita bahas langkah-langkahnya:
+
+Subquery (e):
+- Subquery ini menghasilkan daftar tahun kalendar di mana karyawan direkrut. 
+Subquery ini memberikan basis untuk CROSS JOIN dengan data manajer departemen.
+
+CROSS JOIN dengan t_dept_manager (tdm):
+- Menggabungkan setiap baris hasil dari subquery dengan setiap baris 
+dalam tabel t_dept_manager menggunakan CROSS JOIN. 
+Ini menciptakan kombinasi setiap tahun kalendar dengan setiap manajer departemen.
+
+JOIN dengan t_departments (td) dan t_employees (te):
+- Menggabungkan hasil dari CROSS JOIN dengan informasi 
+tambahan dari tabel t_departments dan t_employees.
+
+SELECT Statement:
+- Memilih kolom-kolom yang ingin ditampilkan. Tambahan dari subquery memberikan informasi 
+tentang tahun kalendar di mana manajer aktif.
+
+ORDER BY:
+- Mengurutkan hasil berdasarkan kolom ke-3 (emp_no) dan ke-6 (calendar_year).
+
+Hasilnya adalah daftar manajer departemen dengan informasi tahun kalendar 
+di mana mereka aktif. Kolom "active_emp" menunjukkan apakah manajer tersebut 
+aktif pada tahun kalendar tertentu (1 untuk aktif, 0 untuk tidak aktif).
+
+*/
+
+/*------------------------------------------------------------------------------------*/
+
+/*
+Case 3:
+Compare the average salary of female versus male employees in
+the entire company until year 2002, and add a filter allowing
+you to see that per each department. 
+*/
+SELECT
+	te.gender,
+    td.dept_name,
+    ROUND(AVG(ts.salary), 2) AS salary,
+    YEAR(ts.from_date) AS calendar_year
+FROM t_employees te
+JOIN t_salaries ts ON te.emp_no = ts.emp_no
+JOIN t_dept_emp tde ON ts.emp_no = tde.emp_no
+JOIN t_departments td ON tde.dept_no = td.dept_no
+GROUP BY td.dept_no, te.gender, calendar_year
+HAVING calendar_year <= 2002
+ORDER BY td.dept_no;
+
+/*
+Query ini digunakan untuk menghasilkan informasi tentang rata-rata 
+gaji per departemen, gender, dan tahun kalendar, dengan batasan bahwa hanya 
+tahun kalendar hingga 2002 yang dipertimbangkan. 
+
+Mari kita bahas langkah-langkahnya:
+
+SELECT Statement:
+- Memilih kolom-kolom yang ingin ditampilkan. AVG(ts.salary) menghitung 
+rata-rata gaji, dan ROUND(...) menghasilkan rata-rata gaji dengan dua digit desimal. 
+YEAR(ts.from_date) mengambil tahun dari tanggal mulai kontrak.
+
+FROM Clause:
+- Menggabungkan tabel t_employees, t_salaries, t_dept_emp, dan 
+t_departments berdasarkan kunci-kunci yang sesuai.
+
+GROUP BY Clause:
+- Mengelompokkan hasil berdasarkan departemen (dept_no), gender (gender), 
+dan tahun kalendar (calendar_year).
+
+HAVING Clause:
+- Memfilter hasil hanya untuk tahun kalendar yang kurang atau sama dengan 2002.
+
+ORDER BY Clause:
+- Mengurutkan hasil berdasarkan nomor departemen (dept_no).
+
+Hasilnya adalah daftar rata-rata gaji per departemen, gender, 
+dan tahun kalendar, dengan batasan hanya tahun kalendar hingga 2002.
+
+*/
+
 /*------------------------------------------------------------------------------------*/
