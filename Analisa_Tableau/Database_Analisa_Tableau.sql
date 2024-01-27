@@ -2,7 +2,7 @@ USE employees_mod;
 
 -- Analisa Untuk Diterapkan Pada Tableau [Use Database employees_mod]
 /*
-Case 1:
+Task 1:
 Create a visualization that provides a breakdown between the male 
 and female employees working in the company each year, starting from 1990. 
 
@@ -98,7 +98,7 @@ GROUP BY 1, 2;
 /*------------------------------------------------------------------------------------*/
 
 /*
-Case 2:
+Task 2:
 Compare the number of male managers to the number of female managers 
 from different departments for each year, starting from 1990.
 */
@@ -181,7 +181,7 @@ aktif pada tahun kalendar tertentu (1 untuk aktif, 0 untuk tidak aktif).
 /*------------------------------------------------------------------------------------*/
 
 /*
-Case 3:
+Task 3:
 Compare the average salary of female versus male employees in
 the entire company until year 2002, and add a filter allowing
 you to see that per each department. 
@@ -200,7 +200,7 @@ HAVING calendar_year <= 2002
 ORDER BY td.dept_no;
 
 /*
-Query ini digunakan untuk menghasilkan informasi tentang rata-rata 
+Query diatas digunakan untuk menghasilkan informasi tentang rata-rata 
 gaji per departemen, gender, dan tahun kalendar, dengan batasan bahwa hanya 
 tahun kalendar hingga 2002 yang dipertimbangkan. 
 
@@ -229,5 +229,55 @@ Hasilnya adalah daftar rata-rata gaji per departemen, gender,
 dan tahun kalendar, dengan batasan hanya tahun kalendar hingga 2002.
 
 */
+
+/*------------------------------------------------------------------------------------*/
+
+-- Task 4
+/*
+Create an SQL stored procedure that will allow you to obtain the
+average male and female salary per department within a certain
+salary range. Let this range be defined by two values the user
+can insert when calling the procedure.
+
+Finally, visualize the obtained result-set in Tableau as a double
+bar chart.
+*/
+-- Mencari Nilai Minimum Gaji
+SELECT 
+    MIN(salary)
+FROM
+    t_salaries;
+
+-- Mencari Nilai Maksimum Gaji    
+SELECT 
+    MAX(salary)
+FROM
+    t_salaries;
+
+-- Buat Procedure
+DROP PROCEDURE IF EXISTS filter_salary;
+
+DELIMITER $$
+CREATE PROCEDURE filter_salary(IN p_min_salary FLOAT, IN p_max_salary FLOAT)
+BEGIN
+	SELECT
+		te.gender,
+        td.dept_name, 
+        AVG(ts.salary) AS avg_salary
+	FROM
+		t_salaries ts
+			JOIN
+		t_employees te ON ts.emp_no = te.emp_no
+			JOIN
+		t_dept_emp tde ON te.emp_no = tde.emp_no
+			JOIN
+		t_departments td ON tde.dept_no = td.dept_no
+        WHERE ts.salary BETWEEN p_min_salary AND p_max_salary
+	GROUP BY td.dept_no, te.gender;
+END$$
+
+DELIMITER ;
+
+CALL filter_salary(50000, 90000);
 
 /*------------------------------------------------------------------------------------*/
