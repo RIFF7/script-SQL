@@ -2,6 +2,10 @@ USE employees_mod;
 
 -- Analisa Untuk Diterapkan Pada Tableau [Use Database employees_mod]
 /*
+Case 1:
+Create a visualization that provides a breakdown between the male 
+and female employees working in the company each year, starting from 1990. 
+
 Pada case saat ini kita akan menggunakan database 'employees_mod'
 dimana pada case pertama kita akan mencari 3 kolom dari database:
 
@@ -90,5 +94,56 @@ FROM t_dept_emp td
 JOIN t_employees te ON td.emp_no = te.emp_no
 WHERE td.from_date >= 1990
 GROUP BY 1, 2;
+
+/*------------------------------------------------------------------------------------*/
+
+/*
+Case 2:
+Compare the number of male managers to the number of female managers 
+from different departments for each year, starting from 1990.
+*/
+-- Query Awal
+/*
+Disini kita akan melakukan analisa dari hasil output yang dikeluarkan
+dan mengambil beberapa kolom saja untuk dilakukan analisan lebih lanjut
+*/
+SELECT
+	*
+FROM(
+	SELECT
+		YEAR(hire_date) AS calendar_year
+	FROM t_employees
+    GROUP BY calendar_year
+) AS e
+CROSS JOIN t_dept_manager tdm
+JOIN t_departments td ON tdm.dept_no = td.dept_no
+JOIN t_employees te ON tdm.emp_no = te.emp_no;
+
+-- Query Akhir
+/*
+Hasil query dibawah ini adalah hasil dari beberapa kolom
+yang sudah dipilih dan menambahkan kolom kondisi menggunakan CASE WHEN
+*/
+SELECT
+	td.dept_name,
+    te.gender,
+    tdm.emp_no,
+    tdm.from_date,
+    tdm.to_date,
+    e.calendar_year,
+    CASE
+		WHEN YEAR(tdm.to_date) >= e.calendar_year AND YEAR(tdm.from_date) <= e.calendar_year THEN 1
+        ELSE 0
+	END AS active_emp
+FROM(
+	SELECT
+		YEAR(hire_date) AS calendar_year
+	FROM t_employees
+    GROUP BY calendar_year
+) AS e
+CROSS JOIN t_dept_manager tdm
+JOIN t_departments td ON tdm.dept_no = td.dept_no
+JOIN t_employees te ON tdm.emp_no = te.emp_no
+ORDER BY 3, 6;
 
 /*------------------------------------------------------------------------------------*/
